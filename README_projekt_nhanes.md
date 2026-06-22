@@ -41,8 +41,8 @@ Byly vybrány následující proměnné:
 
 ## Hypotéza
 
-**Předpokládáme, že existuje vztah mezi BMI a příjmem domácnosti.
-**---
+Předpokládáme, že existuje vztah mezi BMI a příjmem domácnosti.
+
 
 ## Výzkumná otázka
 
