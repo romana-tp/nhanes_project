@@ -48,11 +48,9 @@ WHERE d2.vek IS NOT NULL
 
 WITH kvartil AS (
 SELECT
-    ROUND(MIN(bmi)::numeric, 2) AS min_bmi,
     ROUND((percentile_cont(0.25) WITHIN GROUP (ORDER BY bmi))::numeric, 2) AS q1,
     ROUND((percentile_cont(0.5)  WITHIN GROUP (ORDER BY bmi))::numeric, 2) AS median,
-    ROUND((percentile_cont(0.75) WITHIN GROUP (ORDER BY bmi))::numeric, 2) AS q3,
-    ROUND(MAX(bmi)::numeric, 2) AS max_bmi
+    ROUND((percentile_cont(0.75) WITHIN GROUP (ORDER BY bmi))::numeric, 2) AS q3
 FROM demo2 d2
 JOIN bmx2 b2
   ON d2.respondent_id = b2.respondent_id
