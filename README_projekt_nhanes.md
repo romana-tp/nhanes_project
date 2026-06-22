@@ -41,9 +41,8 @@ Byly vybrány následující proměnné:
 
 ## Hypotéza
 
-BMI je ovlivněno socioekonomickými faktory, zejména příjmem domácnosti.
-
----
+**Předpokládáme, že existuje vztah mezi BMI a příjmem domácnosti.
+**---
 
 ## Výzkumná otázka
 
