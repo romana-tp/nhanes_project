@@ -15,6 +15,7 @@ GROUP BY respondent_id
 HAVING COUNT(*) > 1
 ;
 
+-- ověření, že spojení tabulek nevytváří násobné záznamy
 
 SELECT d2.respondent_id, COUNT(b2.respondent_id)
 FROM demo2 d2
@@ -123,37 +124,52 @@ LIMIT 10
 
 --rozdělení podle věkových kategorií a příjmové skupiny společně s průměrným bmi a n (počet respondentů)
 
-WITH pohled AS (SELECT 
-*, 
-CASE 
-	WHEN prijem_chudoba < 1 THEN 'pod_hranici_chudoby'
-	WHEN prijem_chudoba <2 THEN 'nizky_prijem'
-	WHEN prijem_chudoba <4 THEN 'stredni_prijem'
-	ELSE 'vysoky_prijem'
-	END AS prijmova_skupina
-	, 
-  CASE
-        WHEN vek < 18 THEN '0-17'
-        WHEN vek < 30 THEN '18-29'
-        WHEN vek < 45 THEN '30-44'
-        WHEN vek < 60 THEN '45-59'
-        ELSE '60+'
-    END AS vekova_skupina
-FROM
-demo2 d2 LEFT JOIN bmx2 b2 ON d2.respondent_id=b2.respondent_id
-WHERE
-bmi IS NOT NULL AND d2.prijem_chudoba IS NOT NULL AND bmi>11.15 AND vek >17
+WITH hranice AS (
+    SELECT
+        percentile_cont(0.25) WITHIN GROUP (ORDER BY bmi) AS q1,
+        percentile_cont(0.75) WITHIN GROUP (ORDER BY bmi) AS q3
+    FROM demo2 d2
+    JOIN bmx2 b2
+        ON d2.respondent_id = b2.respondent_id
+    WHERE d2.vek > 17
+      AND b2.bmi IS NOT NULL
+),
+vypocet AS (
+    SELECT
+        q1 - 1.5 * (q3 - q1) AS dolni_hranice
+    FROM hranice
+),
+pohled AS (
+    SELECT
+        *,
+        CASE
+            WHEN prijem_chudoba < 1 THEN 'pod_hranici_chudoby'
+            WHEN prijem_chudoba < 2 THEN 'nizky_prijem'
+            WHEN prijem_chudoba < 4 THEN 'stredni_prijem'
+            ELSE 'vysoky_prijem'
+        END AS prijmova_skupina,
+        CASE
+            WHEN vek < 18 THEN '0-17'
+            WHEN vek < 30 THEN '18-29'
+            WHEN vek < 45 THEN '30-44'
+            WHEN vek < 60 THEN '45-59'
+            ELSE '60+'
+        END AS vekova_skupina
+    FROM demo2 d2
+    JOIN bmx2 b2
+        ON d2.respondent_id = b2.respondent_id
+    CROSS JOIN vypocet v
+    WHERE bmi IS NOT NULL
+      AND d2.prijem_chudoba IS NOT NULL
+      AND vek > 17
+      AND bmi > v.dolni_hranice
 )
-SELECT 
-prijmova_skupina, 
-vekova_skupina,
-COUNT(*) AS pocet,
-ROUND (AVG(bmi)::NUMERIC,2) AS prumerne_bmi
-FROM
-pohled
-GROUP BY
-1,
-2
-ORDER BY 
-vekova_skupina DESC 
+SELECT
+    prijmova_skupina,
+    vekova_skupina,
+    COUNT(*) AS pocet,
+    ROUND(AVG(bmi)::numeric, 2) AS prumerne_bmi
+FROM pohled
+GROUP BY 1, 2
+ORDER BY vekova_skupina DESC
 ;
