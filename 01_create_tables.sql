@@ -1,6 +1,6 @@
 --Export tabulky z vybraných proměnných otevřeného datasetu DEMO_L projektu Nhanes
 
-CREATE TABLE demo2 AS 
+CREATE TABLE IF NOT EXISTS demo2 AS 
 SELECT
     "SEQN" AS respondent_id,
     "RIAGENDR" AS pohlavi,
@@ -17,7 +17,7 @@ FROM demo;
 
 --Export tabulky z vybraných proměnných otevřeného datasetu BMX_L projektu Nhanes
 
-CREATE TABLE bmx2 AS 
+CREATE TABLE IF NOT EXISTS bmx2 AS 
 SELECT
 	"SEQN" AS respondent_id, 
 	"BMXWT" AS vaha, 
